@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Sistema de Reservas</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e9eff1;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #34495e;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 15px 0;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498DB;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .sidebar button:hover {
+            background-color: #2980B9;
+        }
+
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        h1 {
+            color: #34495e;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background-color: white;
+            border: 1px solid #BDC3C7;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px;
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #BDC3C7;
+            border-radius: 5px;
+        }
+
+        button[type="submit"] {
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #2980B9;
+        }
+
+        .flash-message {
+            display: none;
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li><button onclick="openModal('modalHospedes')">Cadastrar Hóspedes</button></li>
+                <li><button onclick="openModal('modalQuartos')">Cadastrar Quartos</button></li>
+                <li><button onclick="openModal('modalReservas')">Cadastrar Reservas</button></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <h1>Bem-vindo ao Sistema de Gerenciamento de Reservas de Hotéis</h1>
+            <p>Utilize o menu à esquerda para gerenciar hóspedes, quartos e reservas.</p>
+
+            <!-- Cards para Listagens e Relatórios -->
+            <div class="cards-container" style="display: flex; justify-content: space-around;">
+                <div class="card" onclick="window.location.href='/listagens'">
+                    <h3>Ver Listagens</h3>
+                    <p>Veja todos os hóspedes, quartos e reservas cadastrados.</p>
+                </div>
+                <div class="card" onclick="window.location.href='/relatorios'">
+                    <h3>Ver Relatórios</h3>
+                    <p>Gere relatórios de reservas e hóspedes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Hóspedes -->
+    <div id="modalHospedes" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cadastrar Hóspedes</h2>
+                <span class="close" onclick="closeModal('modalHospedes')">&times;</span>
+            </div>
+            <div id="flashMessageHospede" class="flash-message"></div>
+            <form id="formHospede" onsubmit="return addHospede(event)">
+                <label for="nomeHospede">Nome:</label>
+                <input type="text" id="nomeHospede" required>
+                <label for="cpfHospede">CPF:</label>
+                <input type="text" id="cpfHospede" required>
+                <label for="telefoneHospede">Telefone:</label>
+                <input type="text" id="telefoneHospede" required>
+                <label for="emailHospede">E-mail:</label>
+                <input type="email" id="emailHospede" required>
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Quartos -->
+    <div id="modalQuartos" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cadastrar Quartos</h2>
+                <span class="close" onclick="closeModal('modalQuartos')">&times;</span>
+            </div>
+            <div id="flashMessageQuarto" class="flash-message"></div>
+            <form id="formQuarto" onsubmit="return addQuarto(event)">
+                <label for="numeroQuarto">Número:</label>
+                <input type="text" id="numeroQuarto" required>
+                <label for="tipoQuarto">Tipo:</label>
+                <input type="text" id="tipoQuarto" required>
+                <label for="capacidadeQuarto">Capacidade:</label>
+                <input type="number" id="capacidadeQuarto" required>
+                <label for="descricaoQuarto">Descrição:</label>
+                <textarea id="descricaoQuarto" required></textarea>
+                <label for="precoQuarto">Preço por diária:</label>
+                <input type="text" id="precoQuarto" required>
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Reservas -->
+    <div id="modalReservas" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cadastrar Reservas</h2>
+                <span class="close" onclick="closeModal('modalReservas')">&times;</span>
+            </div>
+            <div id="flashMessageReserva" class="flash-message"></div>
+            <form id="formReserva" onsubmit="return addReserva(event)">
+                <label for="hospedeReserva">Hóspede:</label>
+                <input type="text" id="hospedeReserva" required>
+                <label for="quartoReserva">Quarto:</label>
+                <input type="text" id="quartoReserva" required>
+                <label for="dataCheckin">Data de Check-in:</label>
+                <input type="date" id="dataCheckin" required>
+                <label for="dataCheckout">Data de Check-out:</label>
+                <input type="date" id="dataCheckout" required>
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+            document.getElementById('flashMessageHospede').style.display = "none";
+            document.getElementById('flashMessageQuarto').style.display = "none";
+            document.getElementById('flashMessageReserva').style.display = "none";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        function showFlashMessage(modalId, message) {
+            const flashMessage = document.getElementById(modalId);
+            flashMessage.textContent = message;
+            flashMessage.style.display = "block";
+            setTimeout(() => {
+                flashMessage.style.display = "none";
+            }, 5000); // Oculta a mensagem após 5 segundos
+        }
+
+        // Função para adicionar hóspede
+        function addHospede(event) {
+            event.preventDefault();
+            const nome = document.getElementById('nomeHospede').value;
+            const cpf = document.getElementById('cpfHospede').value;
+            const telefone = document.getElementById('telefoneHospede').value;
+            const email = document.getElementById('emailHospede').value;
+
+            fetch('/cadastrar_usuario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'nome': nome,
+                    'cpf': cpf,
+                    'telefone': telefone,
+                    'email': email
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    showFlashMessage('flashMessageHospede', "Hóspede cadastrado com sucesso!");
+                    closeModal('modalHospedes');
+                    document.getElementById('formHospede').reset();
+                } else if (response.status === 400) {
+                    showFlashMessage('flashMessageHospede', "Dados inválidos. Verifique o CPF e o e-mail.");
+                } else {
+                    showFlashMessage('flashMessageHospede', "Falha ao cadastrar hóspede. Verifique os dados.");
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showFlashMessage('flashMessageHospede', "Erro ao cadastrar hóspede.");
+            });
+        }
+
+        // Função para adicionar quarto
+        function addQuarto(event) {
+            event.preventDefault();
+            const numero = document.getElementById('numeroQuarto').value;
+            const tipo = document.getElementById('tipoQuarto').value;
+            const capacidade = document.getElementById('capacidadeQuarto').value;
+            const preco = document.getElementById('precoQuarto').value;
+
+            fetch('/cadastrar_quarto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'numero': numero,
+                    'tipo': tipo,
+                    'capacidade': capacidade,
+                    'preco': preco
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    showFlashMessage('flashMessageQuarto', "Quarto cadastrado com sucesso!");
+                    closeModal('modalQuartos');
+                    document.getElementById('formQuarto').reset();
+                } else if (response.status === 400) {
+                    showFlashMessage('flashMessageQuarto', "Dados inválidos. Verifique o número do quarto e o preço.");
+                } else {
+                    showFlashMessage('flashMessageQuarto', "Falha ao cadastrar quarto. Verifique os dados.");
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showFlashMessage('flashMessageQuarto', "Erro ao cadastrar quarto.");
+            });
+        }
+
+        // Função para adicionar reserva
+        function addReserva(event) {
+            event.preventDefault();
+            const hospede = document.getElementById('hospedeReserva').value;
+            const quarto = document.getElementById('quartoReserva').value;
+            const checkin = document.getElementById('dataCheckin').value;
+            const checkout = document.getElementById('dataCheckout').value;
+
+            fetch('/cadastrar_reserva', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'usuario_id': hospede,
+                    'quarto_id': quarto,
+                    'data_checkin': checkin,
+                    'data_checkout': checkout
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    showFlashMessage('flashMessageReserva', "Reserva cadastrada com sucesso!");
+                    closeModal('modalReservas');
+                    document.getElementById('formReserva').reset();
+                } else if (response.status === 400) {
+                    showFlashMessage('flashMessageReserva', "Dados inválidos. Verifique o hóspede e o quarto.");
+                } else {
+                    showFlashMessage('flashMessageReserva', "Falha ao cadastrar reserva. Verifique os dados.");
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showFlashMessage('flashMessageReserva', "Erro ao cadastrar reserva.");
+            });
+        }
+    </script>
+</body>
+</html>

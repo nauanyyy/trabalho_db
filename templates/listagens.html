@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listagens - Sistema de Reservas</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e9eff1;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #34495e;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .header .button-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .header button {
+            background-color: #2980B9;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+
+        .header button:hover {
+            background-color: #1f639b;
+        }
+
+        .container {
+            padding: 40px;
+        }
+
+        h1 {
+            color: #34495e;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980B9;
+        }
+
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            color: #34495e;
+        }
+
+        .card p {
+            color: #555;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+
+        .modal label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #BDC3C7;
+            border-radius: 5px;
+        }
+
+        .modal button[type="submit"] {
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .modal button[type="submit"]:hover {
+            background-color: #2980B9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Listagens</h1>
+        <div class="button-container">
+            <button onclick="window.location.href='/'">Voltar</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="button-container">
+            <button onclick="showUsuarios()">Lista de Hóspedes</button>
+            <button onclick="showQuartos()">Lista de Quartos</button>
+            <button onclick="showReservas()">Lista de Reservas</button>
+        </div>
+
+        <div id="usuariosList" class="card"></div>
+        <div id="quartosList" class="card hidden"></div>
+        <div id="reservasList" class="card hidden"></div>
+    </div>
+
+    <!-- Modal para Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Editar Dados</h2>
+            <form id="editForm" onsubmit="return updateData(event)">
+                <input type="hidden" id="editId">
+                <label for="editNome">Nome:</label>
+                <input type="text" id="editNome" required>
+                <label for="editEmail">E-mail:</label>
+                <input type="email" id="editEmail" required>
+                <label for="editCpf">CPF:</label>
+                <input type="text" id="editCpf" required>
+                <button type="submit">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentEditId;
+
+        // Funções para exibir as listas
+        function showUsuarios() {
+            document.getElementById('usuariosList').classList.remove('hidden');
+            document.getElementById('quartosList').classList.add('hidden');
+            document.getElementById('reservasList').classList.add('hidden');
+            updateUsuariosList();
+        }
+
+        function showQuartos() {
+            document.getElementById('usuariosList').classList.add('hidden');
+            document.getElementById('quartosList').classList.remove('hidden');
+            document.getElementById('reservasList').classList.add('hidden');
+            updateQuartosList();
+        }
+
+        function showReservas() {
+            document.getElementById('usuariosList').classList.add('hidden');
+            document.getElementById('quartosList').classList.add('hidden');
+            document.getElementById('reservasList').classList.remove('hidden');
+            updateReservasList();
+        }
+
+        // Função para atualizar a lista de usuários
+        function updateUsuariosList() {
+            fetch('/listar_usuarios')
+                .then(response => response.json())
+                .then(data => {
+                    const usuariosList = document.getElementById('usuariosList');
+                    usuariosList.innerHTML = ''; // Limpa a lista existente
+                    data.forEach(usuario => {
+                        const usuarioHtml = `
+                            <h3>${usuario.nome}</h3>
+                            <p>Email: ${usuario.email}</p>
+                            <p>CPF: ${usuario.cpf}</p>
+                            <button onclick="openEditModal('${usuario.id}', '${usuario.nome}', '${usuario.email}', '${usuario.cpf}')">Editar</button>
+                            <button onclick="deleteUsuario('${usuario.id}')">Excluir</button>
+                        `;
+                        usuariosList.innerHTML += `<div>${usuarioHtml}</div>`;
+                    });
+                });
+        }
+
+        // Função para abrir o modal de edição
+        function openEditModal(id, nome, email, cpf) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNome').value = nome;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editCpf').value = cpf;
+            document.getElementById('editModal').style.display = "block";
+        }
+
+        // Função para fechar o modal de edição
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = "none";
+        }
+
+        // Função para atualizar os dados
+        function updateData(event) {
+            event.preventDefault();
+            const id = document.getElementById('editId').value;
+            const nome = document.getElementById('editNome').value;
+            const email = document.getElementById('editEmail').value;
+            const cpf = document.getElementById('editCpf').value;
+
+            fetch(`/editar_usuario/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ nome, email, cpf })
+            })
+            .then(response => {
+                if (response.ok) {
+                    closeEditModal();
+                    updateUsuariosList();
+                } else {
+                    alert('Falha ao atualizar usuário.');
+                }
+            });
+        }
+
+        // Função para excluir um usuário
+        function deleteUsuario(id) {
+            if (confirm('Tem certeza que deseja excluir este usuário?')) {
+                fetch(`/excluir_usuario/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        updateUsuariosList();
+                    } else {
+                        alert('Falha ao excluir usuário.');
+                    }
+                });
+            }
+        }
+
+        // Função para atualizar a lista de quartos
+        function updateQuartosList() {
+            fetch('/listar_quartos')
+                .then(response => response.json())
+                .then(data => {
+                    const quartosList = document.getElementById('quartosList');
+                    quartosList.innerHTML = ''; // Limpa a lista existente
+                    data.forEach(quarto => {
+                        const quartoHtml = `
+                            <h3>Número: ${quarto.numero}</h3>
+                            <p>Tipo: ${quarto.tipo}</p>
+                            <p>Preço: R$ ${quarto.preco}</p>
+                            <button onclick="openEditModalQuarto('${quarto.id}', '${quarto.numero}', '${quarto.tipo}', '${quarto.preco}')">Editar</button>
+                            <button onclick="deleteQuarto('${quarto.id}')">Excluir</button>
+                        `;
+                        quartosList.innerHTML += `<div>${quartoHtml}</div>`;
+                    });
+                });
+        }
+
+        // Função para abrir o modal de edição de quarto
+        function openEditModalQuarto(id, numero, tipo, preco) {
+            // Similar à função de edição de usuário
+            // Implementar a lógica de abertura e preenchimento do modal para quartos
+        }
+
+        // Função para excluir um quarto
+        function deleteQuarto(id) {
+            if (confirm('Tem certeza que deseja excluir este quarto?')) {
+                fetch(`/excluir_quarto/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        updateQuartosList();
+                    } else {
+                        alert('Falha ao excluir quarto.');
+                    }
+                });
+            }
+        }
+
+        // Função para atualizar a lista de reservas
+        function updateReservasList() {
+            fetch('/listar_reservas')
+                .then(response => response.json())
+                .then(data => {
+                    const reservasList = document.getElementById('reservasList');
+                    reservasList.innerHTML = ''; // Limpa a lista existente
+                    data.forEach(reserva => {
+                        const reservaHtml = `
+                            <h3>Hóspede: ${reserva.hospede}</h3>
+                            <p>Quarto: ${reserva.quarto}</p>
+                            <p>Check-in: ${reserva.data_checkin}</p>
+                            <p>Check-out: ${reserva.data_checkout}</p>
+                            <button onclick="deleteReserva('${reserva.id}')">Excluir</button>
+                        `;
+                        reservasList.innerHTML += `<div>${reservaHtml}</div>`;
+                    });
+                });
+        }
+
+        // Função para excluir uma reserva
+        function deleteReserva(id) {
+            if (confirm('Tem certeza que deseja excluir esta reserva?')) {
+                fetch(`/excluir_reserva/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        updateReservasList();
+                    } else {
+                        alert('Falha ao excluir reserva.');
+                    }
+                });
+            }
+        }
+
+        // Atualiza a lista de hóspedes ao carregar a página
+        document.addEventListener('DOMContentLoaded', showUsuarios);
+    </script>
+</body>
+</html>
